@@ -124,3 +124,77 @@ class Polynomial:
             v.reduce()
         return v
 
+    
+    def divmod(self, oth):
+        """Return quotient q and remainder r."""
+        if self.modulus != oth.modulus:
+            raise ValueError("Moduli must match")
+
+        p = self.modulus
+        f = self.clone()
+        g = oth.clone()
+        f.reduce()
+        g.reduce()
+
+        if g.vals == [0]:
+            raise ZeroDivisionError("Division by zero polynomial")
+
+        quotient = [0] * max(1, len(f.vals) - len(g.vals) + 1)
+        remainder = f.vals[:]
+        inv_lc = pow(g.vals[-1], -1, p)
+
+        while remainder != [0] and len(remainder) >= len(g.vals):
+            shift = len(remainder) - len(g.vals)
+            factor = remainder[-1] * inv_lc % p
+            quotient[shift] = factor
+
+            for i, coeff in enumerate(g.vals):
+                remainder[i + shift] = (
+                    remainder[i + shift] - factor * coeff
+                ) % p
+
+            while len(remainder) > 1 and remainder[-1] == 0:
+                remainder.pop()
+
+        q = Polynomial(quotient, p)
+        r = Polynomial(remainder, p)
+        q.reduce()
+        r.reduce()
+        return q, r
+
+    __divmod__ = divmod
+
+    def extended_gcd(self, oth):
+        """Return a, b, d such that a*self + b*oth = d."""
+        if self.modulus != oth.modulus:
+            raise ValueError("Moduli must match")
+
+        p = self.modulus
+        r0, r1 = self.clone(), oth.clone()
+        r0.reduce()
+        r1.reduce()
+
+        if r0.vals == [0] and r1.vals == [0]:
+            raise ValueError("GCD of two zero polynomials is undefined")
+
+        a0, a1 = Polynomial([1], p), Polynomial([0], p)
+        b0, b1 = Polynomial([0], p), Polynomial([1], p)
+
+        while r1.vals != [0]:
+            q, r2 = r0.divmod(r1)
+            r0, r1 = r1, r2
+            a0, a1 = a1, a0 - q * a1
+            b0, b1 = b1, b0 - q * b1
+
+        # Normalize the gcd to make it monic.
+        inv_lc = pow(r0.vals[-1], -1, p)
+        a0 = a0.int_mul(inv_lc)
+        b0 = b0.int_mul(inv_lc)
+        d = r0.int_mul(inv_lc)
+
+        a0.reduce()
+        b0.reduce()
+        d.reduce()
+        return a0, b0, d
+
+

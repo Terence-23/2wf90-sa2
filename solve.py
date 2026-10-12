@@ -4,12 +4,12 @@
 # solve.py
 #
 #
-# Group number:
+# Group number: 51
 # group_number 
 #
 # Author names and student IDs:
 # author_name_1 (author_student_ID_1) 
-# author_name_2 (author_student_ID_2)
+# Grace Borrebach (2255111)
 # author_name_3 (author_student_ID_3)
 # author_name_4 (author_student_ID_4)
 ##
