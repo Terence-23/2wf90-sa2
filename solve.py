@@ -49,7 +49,31 @@ def solve_exercise(exercise_location : str, answer_location : str):
         if exercise["task"] == "addition":
             # Solve finite field arithmetic addition exercise
             pass
-        # et cetera
+
+        if exercise["task"] == "long_division":
+            q, r = f.divmod(g)
+            answer = {
+                "answer-q": q.vals,
+                "answer-r": r.vals
+            }
+
+        elif exercise["task"] == "extended_euclidean_algorithm":
+            a, b, d = f.extended_gcd(g)
+            answer = {
+                "answer-a": a.vals,
+                "answer-b": b.vals,
+                "answer-gcd": d.vals
+            }
+
+        else:
+            raise ValueError(
+                f"Unsupported polynomial task: {exercise['task']}"
+            )
+
+    else:
+        raise ValueError(
+            f"Unsupported exercise type: {exercise['type']}"
+        )
 
 
     # Open file at answer_location for writing, creating the file if it does not exist yet
@@ -57,6 +81,8 @@ def solve_exercise(exercise_location : str, answer_location : str):
     with open(answer_location, "w") as answer_file:
         # Serialize Python answer data (stored in answer) to JSON answer data and write it to answer_file
         json.dump(answer, answer_file, indent=4)
+
+
 
 # You can call your function from here
 # Please do not *run* code outside this block
