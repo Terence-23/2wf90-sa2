@@ -16,8 +16,7 @@
 
 # Import built-in json library for handling input/output 
 import json
-
-
+from poly import Polynomial
 
 def solve_exercise(exercise_location : str, answer_location : str):
     """
@@ -37,20 +36,56 @@ def solve_exercise(exercise_location : str, answer_location : str):
     # Check type of exercise
     if exercise["type"] == "polynomial_arithmetic":
         # Check what task within the polynomial arithmetic tasks we need to perform
+        p = exercise["integer_modulus"]
+        f = Polynomial(exercise["f"], p)
+        g = Polynomial(exercise["g"], p)
+
         if exercise["task"] == "addition":
             # Solve polynomial arithmetic addition exercise
-            pass
+            answer = {
+                "answer": (f + g).vals
+            }
+
         elif exercise["task"] == "subtraction":
             # Solve polynomial arithmetic subtraction exercise
-            pass
-        # et cetera
-    else: # exercise["type"] == "finite_field_arithmetic"
+            answer = {
+                "answer": (f - g).vals
+            }
+
+        elif exercise["task"] == "irreducibility_check":
+            # Solve polynomial irreducibility check exercise
+            answer = {
+                "answer": f.is_irreducible()
+            }
+            
+        elif exercise["task"] == "irreducible_element_generation":
+            # Solve polynomial irreducible element generation exercise
+            p = exercise["integer_modulus"]
+            answer = {
+                "answer": Polynomial.generate_irreducible(
+                    p,
+                    exercise["degree"]
+                )
+            }
+
+        else:
+            raise ValueError(
+                f"Unsupported polynomial arithmetic task: {exercise['task']}"
+            )
+            
+    elif exercise["type"] == "finite_field_arithmetic":
         # Check what task within the finite field arithmetic tasks we need to perform
+        p = exercise["integer_modulus"]
+        f = Polynomial(exercise["f"], p)
+        g = Polynomial(exercise["g"], p)
+
         if exercise["task"] == "addition":
             # Solve finite field arithmetic addition exercise
-            pass
+            answer = {
+                "answer": (f + g).vals
+            }
 
-        if exercise["task"] == "long_division":
+        elif exercise["task"] == "long_division":
             q, r = f.divmod(g)
             answer = {
                 "answer-q": q.vals,
@@ -64,10 +99,11 @@ def solve_exercise(exercise_location : str, answer_location : str):
                 "answer-b": b.vals,
                 "answer-gcd": d.vals
             }
+        
 
         else:
             raise ValueError(
-                f"Unsupported polynomial task: {exercise['task']}"
+                f"Unsupported finite field task: {exercise['task']}"
             )
 
     else:

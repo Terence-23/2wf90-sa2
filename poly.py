@@ -164,6 +164,95 @@ class Polynomial:
 
     __divmod__ = divmod
 
+    def is_irreducible(self):
+        self.reduce()
+        p = self.modulus
+        n = len(self.vals) - 1
+
+        if n < 1:
+            return False
+
+        if n == 1:
+            return True
+
+        # Make the polynomial monic.
+        f = self.int_mul(pow(self.vals[-1], -1, p))
+        f.reduce()
+
+        x = Polynomial([0, 1], p)
+
+        def power_mod(base, exponent):
+            result = Polynomial([1], p)
+            base = base.poly_mod(f)
+
+            while exponent > 0:
+                if exponent % 2 == 1:
+                    result = (result * base).poly_mod(f)
+
+                base = (base * base).poly_mod(f)
+                exponent //= 2
+
+            result.reduce()
+            return result
+
+        # Check x^(p^n) = x mod f.
+        if power_mod(x, p ** n).vals != x.vals:
+            return False
+
+        # Find the distinct prime divisors of n.
+        number = n
+        divisor = 2
+        prime_divisors = []
+
+        while divisor * divisor <= number:
+            if number % divisor == 0:
+                prime_divisors.append(divisor)
+                while number % divisor == 0:
+                    number //= divisor
+
+            divisor += 1
+
+        if number > 1:
+            prime_divisors.append(number)
+
+        # Check gcd(f, x^(p^(n/q)) - x) = 1.
+        for q in prime_divisors:
+            test = power_mod(x, p ** (n // q)) - x
+            _, _, gcd = f.extended_gcd(test)
+
+            gcd.reduce()
+
+            if gcd.vals != [1]:
+                return False
+
+        return True
+        
+    @classmethod
+    def generate_irreducible(cls, modulus, degree):
+        if degree < 1:
+            raise ValueError("Degree must be positive")
+
+        # Every degree-one polynomial is irreducible.
+        if degree == 1:
+            return [0, 1]
+
+        # Enumerate monic polynomials
+        for number in range(modulus ** degree):
+            coefficients = []
+
+            for _ in range(degree):
+                coefficients.append(number % modulus)
+                number //= modulus
+
+            candidate = coefficients + [1]
+
+            if cls(candidate, modulus).is_irreducible():
+                return candidate
+
+        raise RuntimeError(
+            "Could not generate an irreducible polynomial"
+        )
+
     def extended_gcd(self, oth):
         """Return a, b, d such that a*self + b*oth = d."""
         if self.modulus != oth.modulus:
@@ -196,5 +285,3 @@ class Polynomial:
         b0.reduce()
         d.reduce()
         return a0, b0, d
-
-

@@ -210,6 +210,71 @@ class TestMultiplication(unittest.TestCase):
                 self.assertEqual(coeffs(mul(make(a, p), make(b, p))),
                                  ref_mul(a, b, p))
 
+                
+class TestIrreducibility(unittest.TestCase):
+    def test_irreducible_quadratic_over_f2(self):
+        # x^2 + x + 1 is irreducible over GF(2)
+        f = make([1, 1, 1], 2)
+        self.assertTrue(f.is_irreducible())
+
+    def test_reducible_quadratic_over_f2(self):
+        # x^2 + 1 = (x + 1)^2 over GF(2)
+        f = make([1, 0, 1], 2)
+        self.assertFalse(f.is_irreducible())
+
+    def test_irreducible_cubic_over_f2(self):
+        # x^3 + x + 1 is irreducible over GF(2)
+        f = make([1, 1, 0, 1], 2)
+        self.assertTrue(f.is_irreducible())
+
+    def test_reducible_cubic_over_f2(self):
+        # x^3 + x^2 + x + 1 = (x + 1)(x^2 + 1)
+        f = make([1, 1, 1, 1], 2)
+        self.assertFalse(f.is_irreducible())
+
+    def test_linear_polynomial(self):
+        # Every non-constant linear polynomial is irreducible
+        f = make([1, 1], 5)
+        self.assertTrue(f.is_irreducible())
+
+    def test_constant_polynomial(self):
+        # Constant polynomials are not irreducible
+        f = make([1], 5)
+        self.assertFalse(f.is_irreducible())
+
+class TestIrreducibleGeneration(unittest.TestCase):
+    def test_generate_degree_one(self):
+        result = Polynomial.generate_irreducible(2, 1)
+
+        self.assertEqual(result, [0, 1])
+        self.assertTrue(
+            Polynomial(result, 2).is_irreducible()
+        )
+
+    def test_generate_degree_two(self):
+        result = Polynomial.generate_irreducible(2, 2)
+
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[-1], 1)
+        self.assertTrue(
+            Polynomial(result, 2).is_irreducible()
+        )
+
+    def test_generate_degree_three(self):
+        result = Polynomial.generate_irreducible(3, 3)
+
+        self.assertEqual(len(result), 4)
+        self.assertEqual(result[-1], 1)
+        self.assertTrue(
+            Polynomial(result, 3).is_irreducible()
+        )
+
+    def test_generated_coefficients_are_canonical(self):
+        p = 5
+        result = Polynomial.generate_irreducible(p, 3)
+
+        self.assertTrue(all(0 <= coefficient < p for coefficient in result))
+        self.assertNotEqual(result[-1], 0)
 
 class TestModularReduction(unittest.TestCase):
     def test_lower_degree_unchanged(self):
