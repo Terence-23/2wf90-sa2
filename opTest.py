@@ -276,6 +276,52 @@ class TestIrreducibleGeneration(unittest.TestCase):
         self.assertTrue(all(0 <= coefficient < p for coefficient in result))
         self.assertNotEqual(result[-1], 0)
 
+
+def ref_order(f, h):
+    """Multiplicative order of nonzero f in Z_p[X]/(h), by repeated multiplication."""
+    x, k = mod(f, h), 1
+    while coeffs(x) != [1]:
+        x, k = mod(mul(x, f), h), k + 1
+    return k
+
+
+class TestPrimitivity(unittest.TestCase):
+    def test_x_not_primitive(self):
+        # x^4 + x^3 + x^2 + x + 1 divides x^5 - 1, so x has order 5, not 15
+        self.assertFalse(make([0, 1], 2).is_primitive(make([1, 1, 1, 1, 1], 2)))
+
+    def test_x_plus_one_primitive(self):
+        self.assertTrue(make([1, 1], 2).is_primitive(make([1, 1, 1, 1, 1], 2)))
+
+    def test_zero_not_primitive(self):
+        self.assertFalse(make([0], 3).is_primitive(make([1, 0, 1], 3)))
+
+    def test_degree_one_modulus(self):
+        # Z_7: 3 generates, 2 has order 3
+        h = make([0, 1], 7)
+        self.assertTrue(make([3], 7).is_primitive(h))
+        self.assertFalse(make([2], 7).is_primitive(h))
+
+    def test_matches_brute_force_order(self):
+        for p, h in [(2, [1, 1, 0, 1]), (3, [2, 1, 1]), (5, [2, 0, 1]), (2, [1, 1, 1, 1, 1]), (7, [3, 1])]:
+            h = make(h, p)
+            n = len(h.vals) - 1
+            for number in range(1, p ** n):
+                f = make([number // p ** i % p for i in range(n)], p)
+                self.assertEqual(f.is_primitive(h), ref_order(f, h) == p ** n - 1, (p, h.vals, f.vals))
+
+
+class TestPrimitiveGeneration(unittest.TestCase):
+    def test_generated_is_primitive_and_canonical(self):
+        for p, h in [(2, [1, 1]), (5, [2, 1]), (2, [1, 1, 1, 1, 1]), (5, [4, 3, 4, 2, 1]), (13, [2, 0, 0, 0, 0, 0, 1])]:
+            h = make(h, p)
+            result = Polynomial.generate_primitive(h)
+            self.assertLess(len(result), len(h.vals))
+            self.assertTrue(all(0 <= c < p for c in result))
+            self.assertTrue(result == [0] or result[-1] != 0)
+            self.assertTrue(make(result, p).is_primitive(h))
+
+
 class TestModularReduction(unittest.TestCase):
     def test_lower_degree_unchanged(self):
         r = mod(make([1, 2], 5), make([1, 1, 1], 5))

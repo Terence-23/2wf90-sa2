@@ -1,5 +1,24 @@
 
 
+def prime_divisors(n):
+    """List of distinct prime divisors of n"""
+    primes = []
+    divisor = 2
+    while divisor ** 2 <= n:
+        if n % divisor == 0:
+            primes.append(divisor)
+
+            while n % divisor == 0:
+                n //= divisor
+
+        divisor += 1
+
+    if n > 1:
+        primes.append(n)
+
+    return primes
+
+
 class Polynomial:
     vals = []
     modulus = 0
@@ -105,6 +124,46 @@ class Polynomial:
         return res
     __pow__ = pow
 
+    def pow_mod(self, exp: int, h):
+        """self^exp mod h by square-and-multiply, reducing every step."""
+        res = Polynomial([1], self.modulus)
+        base = self.poly_mod(h)
+
+        while exp > 0:
+            if exp % 2 != 0:
+                res = (res * base).poly_mod(h)
+            exp //= 2
+            base = (base * base).poly_mod(h)
+        return res
+
+    def is_primitive(self, h):
+        f = self.poly_mod(h)
+        f.reduce()
+
+        if f.vals == [0]:
+            return False
+
+        order = self.modulus ** (len(h.vals) - 1) - 1
+        return all(f.pow_mod(order // r, h).vals != [1] for r in prime_divisors(order))
+
+    @classmethod
+    def generate_primitive(cls, h):
+        """Return the first primitive element of Z_p[X]/(h), counting up in base p."""
+        p = h.modulus
+        n = len(h.vals) - 1
+        for number in range(1, p ** n):
+            coefficients = []
+            for _ in range(n):
+                coefficients.append(number % p)
+                number //= p
+
+            candidate = cls(coefficients, p)
+            candidate.reduce()
+            if candidate.is_primitive(h):
+                return candidate.vals
+
+        raise RuntimeError("Could not generate a primitive element")
+
     def _mod_conversion(self):
         res = self.clone()
         res.reduce()
@@ -181,43 +240,13 @@ class Polynomial:
 
         x = Polynomial([0, 1], p)
 
-        def power_mod(base, exponent):
-            result = Polynomial([1], p)
-            base = base.poly_mod(f)
-
-            while exponent > 0:
-                if exponent % 2 == 1:
-                    result = (result * base).poly_mod(f)
-
-                base = (base * base).poly_mod(f)
-                exponent //= 2
-
-            result.reduce()
-            return result
-
         # Check x^(p^n) = x mod f.
-        if power_mod(x, p ** n).vals != x.vals:
+        if x.pow_mod(p ** n, f).vals != x.vals:
             return False
 
-        # Find the distinct prime divisors of n.
-        number = n
-        divisor = 2
-        prime_divisors = []
-
-        while divisor * divisor <= number:
-            if number % divisor == 0:
-                prime_divisors.append(divisor)
-                while number % divisor == 0:
-                    number //= divisor
-
-            divisor += 1
-
-        if number > 1:
-            prime_divisors.append(number)
-
         # Check gcd(f, x^(p^(n/q)) - x) = 1.
-        for q in prime_divisors:
-            test = power_mod(x, p ** (n // q)) - x
+        for q in prime_divisors(n):
+            test = x.pow_mod(p ** (n // q), f) - x
             _, _, gcd = f.extended_gcd(test)
 
             gcd.reduce()

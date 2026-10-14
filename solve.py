@@ -76,8 +76,10 @@ def solve_exercise(exercise_location : str, answer_location : str):
     elif exercise["type"] == "finite_field_arithmetic":
         # Check what task within the finite field arithmetic tasks we need to perform
         p = exercise["integer_modulus"]
-        f = Polynomial(exercise["f"], p)
-        g = Polynomial(exercise["g"], p)
+        h = Polynomial(exercise["polynomial_modulus"], p)
+        # "f" and "g" are absent for some tasks (e.g. primitive_element_generation)
+        f = Polynomial(exercise["f"], p) if "f" in exercise else None
+        g = Polynomial(exercise["g"], p) if "g" in exercise else None
 
         if exercise["task"] == "addition":
             # Solve finite field arithmetic addition exercise
@@ -99,7 +101,16 @@ def solve_exercise(exercise_location : str, answer_location : str):
                 "answer-b": b.vals,
                 "answer-gcd": d.vals
             }
-        
+
+        elif exercise["task"] == "primitivity_check":
+            answer = {
+                "answer": f.is_primitive(h)
+            }
+
+        elif exercise["task"] == "primitive_element_generation":
+            answer = {
+                "answer": Polynomial.generate_primitive(h)
+            }
 
         else:
             raise ValueError(
