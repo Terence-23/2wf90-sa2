@@ -37,8 +37,8 @@ def solve_exercise(exercise_location : str, answer_location : str):
     if exercise["type"] == "polynomial_arithmetic":
         # Check what task within the polynomial arithmetic tasks we need to perform
         p = exercise["integer_modulus"]
-        f = Polynomial(exercise["f"], p)
-        g = Polynomial(exercise["g"], p)
+        f = Polynomial(exercise["f"], p) if "f" in exercise else None
+        g = Polynomial(exercise["g"], p) if "g" in exercise else None
 
         if exercise["task"] == "addition":
             # Solve polynomial arithmetic addition exercise
@@ -50,6 +50,21 @@ def solve_exercise(exercise_location : str, answer_location : str):
             # Solve polynomial arithmetic subtraction exercise
             answer = {
                 "answer": (f - g).vals
+            }
+
+        elif exercise["task"] == "long_division":
+            q, r = f.divmod(g)
+            answer = {
+                "answer-q": q.vals,
+                "answer-r": r.vals
+            }
+
+        elif exercise["task"] == "extended_euclidean_algorithm":
+            a, b, d = f.extended_gcd(g)
+            answer = {
+                "answer-a": a.vals,
+                "answer-b": b.vals,
+                "answer-gcd": d.vals
             }
 
         elif exercise["task"] == "irreducibility_check":
@@ -85,21 +100,6 @@ def solve_exercise(exercise_location : str, answer_location : str):
             # Solve finite field arithmetic addition exercise
             answer = {
                 "answer": (f + g).vals
-            }
-
-        elif exercise["task"] == "long_division":
-            q, r = f.divmod(g)
-            answer = {
-                "answer-q": q.vals,
-                "answer-r": r.vals
-            }
-
-        elif exercise["task"] == "extended_euclidean_algorithm":
-            a, b, d = f.extended_gcd(g)
-            answer = {
-                "answer-a": a.vals,
-                "answer-b": b.vals,
-                "answer-gcd": d.vals
             }
 
         elif exercise["task"] == "primitivity_check":
