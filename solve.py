@@ -58,7 +58,7 @@ def solve_exercise(exercise_location : str, answer_location : str):
         elif exercise["task"] == "long_division":
             try:
                 q,r = map(lambda x: x.vals, f.divmod(g))
-            except ValueError:
+            except ZeroDivisionError:
                 q,r = [None]*2
 
             answer = {

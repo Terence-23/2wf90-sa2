@@ -324,5 +324,5 @@ class Polynomial:
         if d.vals != [1]:
             raise ValueError("Polynomial is not invertible modulo h")
         ret = a.poly_mod(h)
-        a.reduce()
-        return a
+        ret.reduce()
+        return ret
