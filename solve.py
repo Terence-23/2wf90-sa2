@@ -51,20 +51,30 @@ def solve_exercise(exercise_location : str, answer_location : str):
             answer = {
                 "answer": (f - g).vals
             }
-
-        elif exercise["task"] == "long_division":
-            q, r = f.divmod(g)
+        elif exercise["task"] == "multiplication":
             answer = {
-                "answer-q": q.vals,
-                "answer-r": r.vals
+                "answer": (f * g).vals
+            }
+        elif exercise["task"] == "long_division":
+            try:
+                q,r = map(lambda x: x.vals, f.divmod(g))
+            except ValueError:
+                q,r = [None]*2
+
+            answer = {
+                "answer-q": q,
+                "answer-r": r
             }
 
         elif exercise["task"] == "extended_euclidean_algorithm":
-            a, b, d = f.extended_gcd(g)
+            try:
+                a,b,d = map(lambda x: x.vals,f.extended_gcd(g))
+            except ValueError:
+                a,b,d = [None]*3
             answer = {
-                "answer-a": a.vals,
-                "answer-b": b.vals,
-                "answer-gcd": d.vals
+                "answer-a": a,
+                "answer-b": b,
+                "answer-gcd": d
             }
 
         elif exercise["task"] == "irreducibility_check":
@@ -99,7 +109,34 @@ def solve_exercise(exercise_location : str, answer_location : str):
         if exercise["task"] == "addition":
             # Solve finite field arithmetic addition exercise
             answer = {
-                "answer": (f + g).vals
+                "answer": (f + g).poly_mod(h).vals
+            }
+        elif exercise["task"] == "subtraction":
+            answer = {
+                "answer": (f - g).poly_mod(h).vals
+            }
+
+        elif exercise["task"] == "multiplication":
+            answer = {
+                "answer": (f * g).poly_mod(h).vals
+            }
+
+        elif exercise["task"] == "inversion":
+            try:
+                res = f.invert(h).vals
+            except ValueError:
+                res = None
+            answer = {
+                "answer": res
+            }
+
+        elif exercise["task"] == "division":
+            try:
+                res = (f * g.invert(h)).poly_mod(h).vals
+            except ValueError:
+                res = None
+            answer = {
+                "answer": res
             }
 
         elif exercise["task"] == "primitivity_check":

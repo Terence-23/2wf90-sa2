@@ -314,3 +314,15 @@ class Polynomial:
         b0.reduce()
         d.reduce()
         return a0, b0, d
+
+    def invert(self, h):
+        f = self.poly_mod(h)
+        f.reduce()
+        if f.vals == [0]:
+            raise ValueError("Zero polynomial has no inverse")
+        a, _, d = f.extended_gcd(h)
+        if d.vals != [1]:
+            raise ValueError("Polynomial is not invertible modulo h")
+        ret = a.poly_mod(h)
+        a.reduce()
+        return a
